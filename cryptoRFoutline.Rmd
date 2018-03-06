@@ -1,0 +1,77 @@
+---
+title: "cryptoRFoutline"
+author: "avt"
+date: "06/03/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+Aim: Random Forest Implementation for Stock Prices
+
+Data
+
+You may use the specific public API provided by the chosen exchange, but a suitable abstraction that allows for extension to multiple exchanges would be highly desirable.
+
+Data Collection: your solution should be configurable to allow for customized data collection over any arbitrary period at user specified intervals (but MUST include the ability to collect one minute intervals). Each data point (candle) in the time series data should include datetime, opening price, closing price, and traded volume. 
+Date Preprocessing: The collected data will be preprocessed to calculate the Exponential Moving Average (EMA); this should be configurable for short (default 12 candles) and long (default 26 candles).
+
+
+
+Use api to obtain dataset - single/multiple cryptocurrency/ies, intraday, 5 mins (1 min ideal), multiple markets
+
+Two examples? e.g. Bitcoin & Ethereum, USD & CNY or Euro
+
+Potentially multiple data files which will need to be merged (query relational tables to do this)
+Needs to be "full" dataset so potentially large
+Back up by saving to csv file
+
+Filter initial dataset to contain these columns (new tibble):
+
+Timestamp
+Currency
+Currency code
+Market (1..n)
+Opening price (1..n)
+Closing price (1..n)
+Traded volume (1..n)
+
+Add additional columns (new tibble):
+
+EMA_12 (1..n)
+EMA_26 (1..n)
+
+Feature Extraction: As per the paper above, the following indicators should be calculated from the EMA short & long time series data: Relative Strength Indicator (RSI), Stochastic Oscillator, Williams %R, Moving Average Convergence Divergence (MACD), Price Rate of Change (PROC), On Balance Volume (OBV). All Technical Indicators should be output to a Feature Matrix suitable for use in the selected Random Forest implementation
+
+Create a function to use the two EMA values to calculate:
+
+Relative Strength Indicator
+Stochastic Oscillator
+Williams %R
+Moving Average Convergence Divergence (MACD)
+Price Rate of Change (PROC)
+On Balance Volume (OBV)
+
+Create a new tibble (FeatureMatrix) with the following additional columns using the above function for (1..n):
+
+Relative Strength Indicator
+Stochastic Oscillator
+Williams %R
+Moving Average Convergence Divergence (MACD)
+Price Rate of Change (PROC)
+On Balance Volume (OBV)
+
+Random Forest Implementation
+
+Stock Price Prediction: following the paper above, the solution should provide a prediction from the following parameters: market, currency, asset, trading period (e.g. 30, 60 or 90 days).
+
+Create two new tibbles:
+
+Training set (30%)
+Test set (70%)
+
+Create a list of trading periods (30, 60 or 90 days)
+
+
+
