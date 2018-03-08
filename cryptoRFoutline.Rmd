@@ -17,11 +17,40 @@ You may use the specific public API provided by the chosen exchange, but a suita
 Data Collection: your solution should be configurable to allow for customized data collection over any arbitrary period at user specified intervals (but MUST include the ability to collect one minute intervals). Each data point (candle) in the time series data should include datetime, opening price, closing price, and traded volume. 
 Date Preprocessing: The collected data will be preprocessed to calculate the Exponential Moving Average (EMA); this should be configurable for short (default 12 candles) and long (default 26 candles).
 
-
+For loop for each currency starting with api
 
 Use api to obtain dataset - single/multiple cryptocurrency/ies, intraday, 5 mins (1 min ideal), multiple markets
 
 Two examples? e.g. Bitcoin & Ethereum, USD & CNY or Euro
+
+7 months (6 months)
+
+100 days, do the calculations
+4 currencies
+USD & EURO
+
+```{r}
+library(tidyverse)
+library(alphavantager)
+library(data.table)
+library(tidyquant)
+
+av_api_key("IP3TG8GBOWDEVU2S")
+args(av_get)
+
+currencyNames <- c("Bitcoin", "Ethereum", "Ripple", "Bitcoin Cash")
+currencyCodes <- c("BTC", "ETH", "XRP", "BCH")
+marketCodes <- c("USD", "EUR")
+
+cryptoData <- NULL
+
+for (i in 1:length(currencyCodes)) {
+  cryptoData[[i]] <- av_get(symbol = currencyCodes[i], 
+  av_fun = "DIGITAL_CURRENCY_INTRADAY", market="EUR")
+}
+
+
+```
 
 Potentially multiple data files which will need to be merged (query relational tables to do this)
 Needs to be "full" dataset so potentially large
@@ -42,15 +71,37 @@ Add additional columns (new tibble):
 EMA_12 (1..n)
 EMA_26 (1..n)
 
+```{r}
+library(rjson)
+
+#curl "https://api.hitbtc.com/api/2/public/candles/ETHBTC?period=M1&limit=1000" > BTC.json
+
+json_file <- "BTC.json"
+json_data <- as_tibble(fromJSON(json_file))
+cryptoEMA <- json_data %>% 
+  #select(timestamp:close, volume) %>% 
+  mutate(currency_code = currencyCodes[1]) %>% 
+  mutate(open_ema12 = EMA(open, n = 12), close_ema12 = EMA(close, n = 12), 
+         volume_ema12 = EMA(volume, n = 12)) %>% 
+  mutate(open_ema26 = EMA(open, n = 26), close_ema26 = EMA(close, n = 26), 
+         volume_ema26 = EMA(volume, n = 26))
+
+featureMatrix <- cryptoEMA %>% 
+  mutate(open_ema12rsi = RSI(open_ema12, n = 12, maType = "EMA"))
+
+#open_ema12stoch = stoch(c("min", "max", "close"))
+```
+
+
 Feature Extraction: As per the paper above, the following indicators should be calculated from the EMA short & long time series data: Relative Strength Indicator (RSI), Stochastic Oscillator, Williams %R, Moving Average Convergence Divergence (MACD), Price Rate of Change (PROC), On Balance Volume (OBV). All Technical Indicators should be output to a Feature Matrix suitable for use in the selected Random Forest implementation
 
 Create a function to use the two EMA values to calculate:
 
-Relative Strength Indicator
-Stochastic Oscillator
-Williams %R
+Relative Strength Indicator (RSI)
+Stochastic Oscillator (stoch)
+Williams %R (WPR)
 Moving Average Convergence Divergence (MACD)
-Price Rate of Change (PROC)
+Price Rate of Change (PROC)(ROC)
 On Balance Volume (OBV)
 
 Create a new tibble (FeatureMatrix) with the following additional columns using the above function for (1..n):
@@ -68,8 +119,8 @@ Stock Price Prediction: following the paper above, the solution should provide a
 
 Create two new tibbles:
 
-Training set (30%)
-Test set (70%)
+Training set (70%)
+Test set (30%)
 
 Create a list of trading periods (30, 60 or 90 days)
 
